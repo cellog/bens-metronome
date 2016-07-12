@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport' />
+    <title>Ben's Metronome</title>
+    <style>
+        button {
+            background-color: #002200;
+        }
+        button.going {
+            background-color: #333300;
+        }
+        button.done {
+            background-color: #220000;
+        }
+        body {
+            width: 100vw;
+            height: 100vh;
+            color: #999999;
+            background: black;
+        }
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-flow: column nowrap;
+            align-items: center;
+            justify-content: center;
+        }
+        #beats {
+            width: 100%;
+            flex: 1 0 0;
+            display: flex;
+            flex-flow: row nowrap;
+        }
+        #button {
+            width: 100%;
+            flex: 2 0 0;
+        }
+        button {
+            color: #999999;
+            border: 1px inset #444444;
+            font-size: 15vw;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script>
+        function timer(beats) {
+            this.beats = beats
+            this.begin = false
+            this.end = false
+        }
+        timer.prototype.go = function() {
+            this.begin = Date.now()
+        }
+        timer.prototype.stop = function() {
+            this.end = Date.now()
+            var beatLengthInMilliseconds = this.calculate(this.begin, this.end, this.beats)
+            var beatsPerMinute = 60*1000 / beatLengthInMilliseconds
+
+            console.log('beat length', beatLengthInMilliseconds / 1000)
+            console.log('total time', (this.end - this.begin) / 1000)
+            console.log('beats per minute', beatsPerMinute)
+            this.beatsPerMinute = beatsPerMinute
+            return beatsPerMinute
+        }
+        timer.prototype.calculate = function(begin, end, beats) {
+            return (end - begin) / beats
+        }
+        function metronome() {
+            this.beats = 6
+            this.button = document.getElementById('t')
+            var l = listener(this)
+            this.button.addEventListener('touchstart', l)
+        }
+        metronome.prototype.go = function() {
+            this.timer = new timer(this.beats)
+            this.timer.go()
+            this.button.className = 'going'
+            this.button.innerText = 'Stop'
+        }
+        metronome.prototype.stop = function() {
+            var end = this.timer.stop()
+            this.button.innerText = Math.round(end)
+            this.button.className = 'done'
+        }
+        metronome.prototype.reset = function() {
+            this.button.innerText = 'Ready'
+            this.button.className = ''
+        }
+        function listener(metronome) {
+            var state = 'ready'
+            return function() {
+                switch (state) {
+                    case 'ready' :
+                        metronome.go()
+                        state = 'going'
+                        break;
+                    case 'going' :
+                        metronome.stop()
+                        state = 'done'
+                        break;
+                    case 'done' :
+                        metronome.reset()
+                        state = 'ready'
+                        break;
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div id="button">
+            <button id="t">Ready</button>
+        </div>
+    </div>
+<script>
+    new metronome()
+</script>
+</body>
+</html>
